@@ -57,8 +57,7 @@ def change_intensity(new_intensity_mapper):
 			new_intensities = new_intensity_mapper[image[row_number][col_number]]
 			weights = [i[1] for i in new_intensities]
 			total = float(sum(weights))
-			new_intensity = new_intensities[np.random.choice([i for i in range(len(new_intensities))], 
-																				p=[i/total for i in weights])]
+			new_intensity = new_intensities[np.random.choice([i for i in range(len(new_intensities))], p=[i/total for i in weights])]
 			image[row_number][col_number] = new_intensity[0]
 			new_intensity[1] -= 1
 			if (new_intensity[1] == 0):
@@ -78,7 +77,6 @@ original_cumulative = get_cumulative(intensity_frequency)
 
 mapper = create_mapper(intensity_frequency)
 change_intensity(mapper)
-
 image_name, extension = original_image_name.split('.')
 new_image_name = image_name + '-equalized.' + extension
 cv2.imwrite(new_image_name, image)
