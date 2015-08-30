@@ -1,17 +1,16 @@
+"""
+Use: python lab2.py pic1.jpg
+Note that this program might be quite slow, please be patient.
+The reason is that I try to make sure the image is perfectly equalized, 
+meaning the cumulative intensity graph is exactly a straight line (if the number of pixels is divisible by 256).
+Also, when pixels with one original intensity can be mapped to two or more intensities after equalization, 
+the new intensities will be randomly assigned by weights related to number of new intensities to be mapped to.
+"""
+
 import sys
 import cv2
-import cv2.cv as cv
 import numpy as np
 import matplotlib.pyplot as plt
-
-# original_image_name = sys.argv[1]
-original_image_name = 'pic5.jpg'
-intensity_range = 256
-
-image = cv2.imread(original_image_name, cv2.CV_LOAD_IMAGE_GRAYSCALE)
-num_of_rows = len(image)
-num_of_cols = len(image[0])
-image_size = num_of_rows * num_of_cols
 
 def get_intensity_frequency(image):
 	intensity_frequency = [0] * intensity_range
@@ -28,10 +27,11 @@ def get_cumulative(intensity_frequency):
 		cumulative[intensity] = cumulative[intensity-1] + intensity_frequency[intensity]
 	return cumulative
 
-# A list of dictionaries. If the original intensity is x,
-# then for the dictionary at new_intensity_mapper[x] :
-# The keys are the new intensity levels mapped, 
-# and the values represents the number of pixels that will be assigned the intensity level represented by the corresponding key
+# Return a list of lists. If the original intensity is x,
+# then for the list at new_intensity_mapper[x] :
+# The first elements in each sublist are the new intensity levels mapped, 
+# and second elements in each sublist represents the number of pixels 
+# that will be assigned the intensity level represented by the corresponding key
 def create_mapper(intensity_frequency):
 	new_intensity_mapper = [[] for i in range(intensity_range)]
 	original_intensity = 0
@@ -57,25 +57,34 @@ def change_intensity(new_intensity_mapper):
 			new_intensities = new_intensity_mapper[image[row_number][col_number]]
 			weights = [i[1] for i in new_intensities]
 			total = float(sum(weights))
-			new_intensity = new_intensities[np.random.choice([i for i in range(len(new_intensities))], p=[i/total for i in weights])]
+			new_intensity = new_intensities[np.random.choice([i for i in range(len(new_intensities))], 
+																				p=[i/total for i in weights])]
 			image[row_number][col_number] = new_intensity[0]
 			new_intensity[1] -= 1
 			if (new_intensity[1] == 0):
 				new_intensities.remove(new_intensity)
 
+original_image_name = sys.argv[1]
+intensity_range = 256
+
+image = cv2.imread(original_image_name, cv2.CV_LOAD_IMAGE_GRAYSCALE)
+num_of_rows = len(image)
+num_of_cols = len(image[0])
+image_size = num_of_rows * num_of_cols
 
 xaxis = [i for i in range(256)]
 intensity_frequency = get_intensity_frequency(image)
+original_cumulative = get_cumulative(intensity_frequency)
+
 mapper = create_mapper(intensity_frequency)
 change_intensity(mapper)
-# intensity_frequency = get_intensity_frequency(image)
-
-# plt.plot(get_cumulative(intensity_frequency))
-# plt.axis([0, intensity_range, 0, image_size])
-# plt.show()
 
 image_name, extension = original_image_name.split('.')
 new_image_name = image_name + '-equalized.' + extension
 cv2.imwrite(new_image_name, image)
 
-
+# uncomment below to plot the graphs
+# final_intensity_frequency = get_intensity_frequency(image)
+# plt.plot(xaxis, original_cumulative, 'r-', xaxis, get_cumulative(final_intensity_frequency), 'g-')
+# plt.axis([0, intensity_range, 0, image_size])
+# plt.show()
