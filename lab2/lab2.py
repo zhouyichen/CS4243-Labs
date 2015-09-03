@@ -75,14 +75,23 @@ xaxis = [i for i in range(256)]
 intensity_frequency = get_intensity_frequency(image)
 original_cumulative = get_cumulative(intensity_frequency)
 
+original_intensity_hist = intensity_frequency[:]
+
 mapper = create_mapper(intensity_frequency)
 change_intensity(mapper)
 image_name, extension = original_image_name.split('.')
 new_image_name = image_name + '-equalized.' + extension
 cv2.imwrite(new_image_name, image)
 
-# uncomment below to plot the graphs
+# uncomment below to plot the cumulative graphs
 # final_intensity_frequency = get_intensity_frequency(image)
 # plt.plot(xaxis, original_cumulative, 'r-', xaxis, get_cumulative(final_intensity_frequency), 'g-')
 # plt.axis([0, intensity_range, 0, image_size])
 # plt.show()
+
+# uncomment below to plot the intensity frequency histogram graphs
+# final_intensity_frequency = get_intensity_frequency(image)
+# plt.plot(xaxis, original_intensity_hist, 'r', xaxis, intensity_frequency, 'g')
+# plt.xlim([0, 255])
+# plt.show()
+
