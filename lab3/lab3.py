@@ -59,13 +59,15 @@ for row_number in range(num_of_rows):
 		sobel_image[row_number, col_number] = sobel_strength
 
 		if row_number > 0:
-			if (sobel_strength > sobel_image[row_number - 1, col_number]):
+			if (sobel_strength >= sobel_image[row_number - 1, col_number]):
 				thinned_image_indicator[row_number, col_number][1] = 1
-				thinned_image_indicator[row_number - 1, col_number][1] = 0
+				if (sobel_strength > sobel_image[row_number - 1, col_number]):
+					thinned_image_indicator[row_number - 1, col_number][1] = 0
 		if col_number > 0:
-			if (sobel_strength > sobel_image[row_number, col_number - 1]):
+			if (sobel_strength >= sobel_image[row_number, col_number - 1]):
 				thinned_image_indicator[row_number, col_number][0] = 1
-				thinned_image_indicator[row_number, col_number - 1][0] = 0
+				if (sobel_strength > sobel_image[row_number, col_number - 1]):
+					thinned_image_indicator[row_number, col_number - 1][0] = 0
 
 
 for row_number in range(num_of_rows):
