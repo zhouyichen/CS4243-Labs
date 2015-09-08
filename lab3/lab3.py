@@ -17,7 +17,9 @@ sobel_vertical = np.array([-1, -2, -1, 0, 0, 0, 1, 2, 1])
 
 prewit_image = np.zeros((num_of_rows,num_of_cols))
 sobel_image = np.zeros((num_of_rows,num_of_cols))
-thinned_image = np.ones((num_of_rows,num_of_cols))
+thinned_image = np.zeros((num_of_rows,num_of_cols))
+thinned_image_indicator = np.zeros((num_of_rows,num_of_cols, 2))
+thinned_image_indicator[0, 0] = [1, 1]
 
 def get_adjacent_pixels(row_number, col_number):
 	mat = np.zeros((3,3))
@@ -55,20 +57,31 @@ for row_number in range(num_of_rows):
 		if sobel_strength < sobel_min:
 			sobel_min = sobel_strength
 		sobel_image[row_number, col_number] = sobel_strength
-		# set_prewit_and_thinned(row_number, col_number, adjacent_pixels)
+
+		if row_number > 0:
+			if (sobel_strength > sobel_image[row_number - 1, col_number]):
+				thinned_image_indicator[row_number, col_number][1] = 1
+				thinned_image_indicator[row_number - 1, col_number][1] = 0
+		if col_number > 0:
+			if (sobel_strength > sobel_image[row_number, col_number - 1]):
+				thinned_image_indicator[row_number, col_number][0] = 1
+				thinned_image_indicator[row_number, col_number - 1][0] = 0
+
 
 for row_number in range(num_of_rows):
 	for col_number in range(num_of_cols):
 		prewit_image[row_number, col_number] = int(float(prewit_max - prewit_image[row_number, col_number])/(prewit_max - prewit_min) * (intensity_range - 1))
 		sobel_image[row_number, col_number] = int(float(sobel_max - sobel_image[row_number, col_number])/(sobel_max - sobel_min) * (intensity_range - 1))
-
+		max_indicator = thinned_image_indicator[row_number, col_number]
+		thinned_image[row_number, col_number] = 255 - (max_indicator[0] or max_indicator[1]) * (255- sobel_image[row_number, col_number])
 
 image_name, extension = original_image_name.split('.')
 prewit_image_name = image_name + '_prewit_result.' + extension
 cv2.imwrite(prewit_image_name, prewit_image)
 sobel_image_name = image_name + '_sobel_result.' + extension
 cv2.imwrite(sobel_image_name, sobel_image)
-
+thinned_image_name = image_name + '_thinned_sobel_result.' + extension
+cv2.imwrite(thinned_image_name, thinned_image)
 
 
 
