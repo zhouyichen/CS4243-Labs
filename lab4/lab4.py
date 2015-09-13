@@ -3,7 +3,6 @@ import numpy as np
 
 intensity_range = 256
 hue_factor = float(intensity_range)/360
-flower_image_name = 'flower.jpg'
 
 def set_hsv(bgr_color, pixel_index, hue_image, saturation_image, value_image):
 	b, g, r = bgr_color.astype(int)
@@ -64,6 +63,15 @@ def set_rgb(pixel_index, hue, saturation, value, image):
 		print original_hue, 'error......................'
 	image[pixel_index] = [blue, green, red]
 
+def equalise(value_channel):
+	hist, bins = np.histogram(value_channel.flatten(), 256, [0, 256])
+	cdf = hist.cumsum()
+	cdf_m = np.ma.masked_equal(cdf,0)
+	cdf_m = (cdf_m - cdf_m.min()) * 255 / (cdf_m.max() - cdf_m.min())
+	cdf = np.ma.filled(cdf_m,0).astype('uint8')
+	return cdf[value_channel.astype('uint8')]
+
+flower_image_name = 'flower.jpg'
 image = cv2.imread(flower_image_name, cv2.CV_LOAD_IMAGE_COLOR)
 num_of_rows, num_of_cols, channels = image.shape
 
@@ -82,3 +90,22 @@ cv2.imwrite('saturation.jpg', saturation_image)
 cv2.imwrite('hue.jpg', hue_image)
 cv2.imwrite('hsv2rgb.jpg', hsv2rgb)
 
+bee_image_name = 'bee.png'
+image = cv2.imread(bee_image_name, cv2.CV_LOAD_IMAGE_COLOR)
+num_of_rows, num_of_cols, channels = image.shape
+
+hue_image = np.zeros((num_of_rows,num_of_cols))
+saturation_image = np.zeros((num_of_rows,num_of_cols))
+value_image = np.zeros((num_of_rows,num_of_cols))
+hsv2rgb = np.zeros((num_of_rows,num_of_cols, 3))
+
+for pixel_index in np.ndindex(image.shape[:2]):
+	bgr_color = image[pixel_index]
+	set_hsv(bgr_color, pixel_index, hue_image, saturation_image, value_image)
+
+value_image = equalise(value_image)
+
+for pixel_index in np.ndindex(image.shape[:2]):
+	set_rgb(pixel_index, hue_image[pixel_index], saturation_image[pixel_index], value_image[pixel_index], hsv2rgb)
+
+cv2.imwrite('histeq.jpg', hsv2rgb)
