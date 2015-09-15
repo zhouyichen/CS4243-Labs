@@ -4,22 +4,16 @@ import numpy as np
 intensity_range = 256
 hue_factor = float(intensity_range)/360
 
-def set_hsv(bgr_color, pixel_index, hue_image, saturation_image, value_image):
+def convert_hsv(bgr_color, hue_image, saturation_image, value_image):
 	b, g, r = bgr_color.astype(int)
-
 	cmax = max(r, g, b)
 	cmin = min(r, g, b)
 	delta = cmax - cmin
-
-	value = cmax
-	value_image[pixel_index] = value
-
+	value = cmax / float(intensity_range - 1)
 	if cmax == 0:
 		saturation = 0
 	else:
-		saturation = intensity_range * delta / cmax
-	saturation_image[pixel_index] = saturation
-
+		saturation = float(delta) / cmax
 	if delta < 1:
 		hue = 0
 	elif cmax == r:
@@ -28,47 +22,43 @@ def set_hsv(bgr_color, pixel_index, hue_image, saturation_image, value_image):
 		hue = 60 * (float(b - r) / delta + 2)
 	else:
 		hue = 60 * (float(r - g) / delta + 4)
-	hue = int(hue * hue_factor)
-
-	hue_image[pixel_index] = hue
 	return (hue, saturation, value)
 
 def set_rgb(pixel_index, hue, saturation, value, image):
-	original_hue = hue / hue_factor
-	c = value * saturation / intensity_range
-	x = c * (1 - abs(((original_hue / 60) % 2) - 1))
+	c = value * saturation
+	x = c * (1 - abs(((hue / 60) % 2) - 1))
 	m = value - c
 	red, green, blue = m, m, m
-	if original_hue < 0:
-		print original_hue, 'error..............................'
-	elif original_hue < 60:
+	if hue < 0:
+		print hue, 'error..............................'
+	elif hue < 60:
 		red += c
 		green += x
-	elif original_hue < 120:
+	elif hue < 120:
 		red += x
 		green += c
-	elif original_hue < 180:
+	elif hue < 180:
 		green += c
 		blue += x
-	elif original_hue < 240:
+	elif hue < 240:
 		green += x
 		blue += c
-	elif original_hue < 300:
+	elif hue < 300:
 		red += x
 		blue += c
-	elif original_hue < 360:
+	elif hue < 360:
 		red += c
 		blue += x
 	else:
-		print original_hue, 'error......................'
-	image[pixel_index] = [blue, green, red]
+		print hue, 'error......................'
+	image[pixel_index] = [int(blue * 255), int(green * 255), int(red * 255)]
 
 def equalise(value_channel):
 	hist, bins = np.histogram(value_channel.flatten(), 256, [0, 256])
 	cdf = hist.cumsum()
-	cdf_m = np.ma.masked_equal(cdf,0)
+	cdf_m = np.ma.masked_equal(cdf, 0)
 	cdf_m = (cdf_m - cdf_m.min()) * 255 / (cdf_m.max() - cdf_m.min())
-	cdf = np.ma.filled(cdf_m,0).astype('uint8')
+	cdf = np.ma.filled(cdf_m, 0).astype('uint8')
 	return cdf[value_channel.astype('uint8')]
 
 flower_image_name = 'flower.jpg'
@@ -82,7 +72,15 @@ hsv2rgb = np.zeros((num_of_rows,num_of_cols, 3))
 
 for pixel_index in np.ndindex(image.shape[:2]):
 	bgr_color = image[pixel_index]
-	hue, saturation, value = set_hsv(bgr_color, pixel_index, hue_image, saturation_image, value_image)
+	hue, saturation, value = convert_hsv(bgr_color, hue_image, saturation_image, value_image)
+	# normalise
+	normalised_hue = int(hue * hue_factor)
+	normalised_saturation = int((intensity_range - 1) * saturation)
+	normalised_value = int((intensity_range - 1) * value)
+	# save values into images
+	hue_image[pixel_index] = normalised_hue
+	saturation_image[pixel_index] = normalised_saturation
+	value_image[pixel_index] = normalised_value
 	set_rgb(pixel_index, hue, saturation, value, hsv2rgb)
 
 cv2.imwrite('brightness.jpg', value_image)
@@ -101,9 +99,17 @@ hsv2rgb = np.zeros((num_of_rows,num_of_cols, 3))
 
 for pixel_index in np.ndindex(image.shape[:2]):
 	bgr_color = image[pixel_index]
-	set_hsv(bgr_color, pixel_index, hue_image, saturation_image, value_image)
+	hue, saturation, value = convert_hsv(bgr_color, hue_image, saturation_image, value_image)
+	# normalise
+	normalised_value = int((intensity_range - 1) * value)
+	# save values into images
+	hue_image[pixel_index] = hue
+	saturation_image[pixel_index] = saturation
+	value_image[pixel_index] = normalised_value
 
 value_image = equalise(value_image)
+make_float = np.vectorize(lambda value: value / float(intensity_range - 1))
+value_image = make_float(value_image)
 
 for pixel_index in np.ndindex(image.shape[:2]):
 	set_rgb(pixel_index, hue_image[pixel_index], saturation_image[pixel_index], value_image[pixel_index], hsv2rgb)
