@@ -1,6 +1,7 @@
 import sys
 import cv2
 import numpy as np
+import matplotlib.pyplot as plt
 
 original_image_name = sys.argv[1]
 intensity_range = 256
@@ -52,17 +53,18 @@ for pixel_index in np.ndindex(image.shape[:2]):
 	response = detW - k * traceW * traceW
 	response_mat[pixel_index] = response
 
+
 max_response = np.amax(response_mat)
 treshold_response = max_response * 0.1
-color_image = cv2.imread(original_image_name, cv2.CV_LOAD_IMAGE_COLOR)
+rows = []
+cols = []
 for pixel_index in np.ndindex(image.shape[:2]):
 	if response_mat[pixel_index] >= treshold_response:
-		cv2.circle(color_image, pixel_index[::-1], 3, (0, 0, 255), 1, 8, 0)
+		rows.append(pixel_index[1])
+		cols.append(pixel_index[0])
 
-image_name, extension = original_image_name.split('.')
-final_filename = image_name + '_features.' + extension 
-cv2.imwrite(final_filename, color_image)
-
-
-
-
+plt.figure()
+plt.imshow(image, cmap='gray')
+plt.hold(True)
+plt.scatter(rows, cols, color='blue', alpha=0.5)
+plt.show()
