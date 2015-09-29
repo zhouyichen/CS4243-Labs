@@ -4,7 +4,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 original_image_name = sys.argv[1]
-intensity_range = 256
 k = 0.06
 image = cv2.imread(original_image_name, cv2.CV_LOAD_IMAGE_GRAYSCALE)
 num_of_rows = len(image)
