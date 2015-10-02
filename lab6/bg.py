@@ -24,13 +24,13 @@ avgImg = np.float32(img)
 for fr in range(1, frame_count):
 	_, img = cap.read()
 
-	alpha = 1 / float(fr + 1)
-	cv2.accumulateWeighted(img, avgImg, alpha)
+	ratio_new = 1 / float(fr + 1)
+	ratio_original = fr / float(fr + 1)
+	avgImg = img * ratio_new + avgImg * ratio_original
 
 	normImg = cv2.convertScaleAbs(avgImg) # convert into uint8 image
 	cv2.imshow('img',img)
 	cv2.imshow('normImg', normImg)
-	print "fr = ", fr, " alpha = ", alpha
 
 cv2.imwrite('background.jpg', normImg)
 cv2.waitKey(0)
