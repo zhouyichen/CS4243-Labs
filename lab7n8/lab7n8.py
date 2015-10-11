@@ -43,7 +43,7 @@ def quat_rotate(p, q):
 radian_neg15 = float(-30 / 2) / 180 * np.pi
 rotate_quat = [np.cos(radian_neg15), 0, np.sin(radian_neg15), 0]
 
-pos1 = [0, 0, 5]
+pos1 = [0, 0, -5]
 camera_positions = [quat(pos1)]
 for i in range(3):
 	new_pos = quat_rotate(camera_positions[-1], rotate_quat)
