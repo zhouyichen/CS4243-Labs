@@ -53,7 +53,10 @@ q1, q2, q3, q4 = camera_positions
 pos2 = point(q2)
 pos3 = point(q3)
 pos4 = point(q4)
+print 'pos1 =', pos1
+print 'pos2 =', pos2
+print 'pos3 =', pos3
+print 'pos4 =', pos4
 
-print pos2, pos3, pos4
 
 
