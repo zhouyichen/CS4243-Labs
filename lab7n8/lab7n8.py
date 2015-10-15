@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import numpy.linalg as la
 
 pts = np.zeros([11, 3])
 pts[0, :] = [-1, -1, -1]
@@ -139,3 +140,41 @@ orthographic_plot = plot_projection(orthographic_projection, 2)
 plt.show()
 
 
+# Part 3
+i_f, j_f, k_f = np.array(quatmat_3)
+points = [perspective_projection(pt, pos3, i_f, j_f, k_f) for pt in pts]
+
+initial_pts = [pts[0], pts[1], pts[2], pts[3], pts[8]]
+final_pts = [points[0], points[1], points[2], points[3], points[8]]
+
+pts = np.zeros([10, 9])
+mat = []
+for init, final in zip(initial_pts, final_pts):
+	up, vp, x = init
+	uc, vc = final
+	zeros = [0, 0, 0]
+	uv1 = [up, vp, 1]
+	mat.append(uv1 + zeros + [- uc * i for i in uv1])
+	mat.append(zeros + uv1 + [- vc * i for i in uv1])
+
+mat = np.matrix(mat)
+U, S, Vt = la.svd(mat)
+min_index = -1
+minimun_eigen = 99999
+
+# Find the index with zero as the eigenvalue
+for i in range(9):
+	if abs(S[i]) < minimun_eigen:
+		minimun_eigen = abs(S[i])
+		min_index = i
+
+homography_array = np.array(Vt[i])[0]
+homography = homography_array / homography_array[-1]
+
+homography.resize([3, 3])
+print homography
+'''
+[[  1.11111111e-01  -2.95802366e-16  -1.92450090e-01]
+ [ -5.73117083e-17   2.22222222e-01   2.14456715e-16]
+ [ -1.92450090e-01   2.88407306e-16   1.00000000e+00]]
+ '''
