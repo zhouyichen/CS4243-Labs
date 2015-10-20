@@ -171,6 +171,8 @@ for i in range(9):
 homography_array = np.array(Vt[i])[0]
 homography = homography_array / homography_array[-1]
 
+print 'should be zeros'
+print np.dot(mat, homography)
 homography.resize([3, 3])
 print homography
 '''
@@ -178,3 +180,12 @@ print homography
  [ -5.73117083e-17   2.22222222e-01   2.14456715e-16]
  [ -1.92450090e-01   2.88407306e-16   1.00000000e+00]]
  '''
+
+# Testing
+for i in range(len(initial_pts)):
+	pt = initial_pts[i]
+	pt = [pt[0], pt[1], 1]
+	point = np.dot(homography, pt)
+	print point/point[2]
+	print final_pts[i]
+	print
